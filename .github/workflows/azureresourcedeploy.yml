@@ -1,0 +1,56 @@
+on: [push]
+
+name: AzureARMDeploy
+
+jobs:
+
+    deploy:
+      runs-on: ubuntu-latest
+      steps:
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Deploy ARM Template 1
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az deployment group create \
+            --name StorageAccount1Deployment \
+            --resource-group Siddhant \
+            --template-file armtemplates/storageaccount.json \
+            --parameters storageAccountType=Standard_GRS
+
+          
+      - name: Deploy ARM Template 2
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az deployment group create \
+            --name StorageAccount2Deployment \
+            --resource-group Siddhant \
+            --template-file armtemplates/storageaccount2.json \
+            --parameters storageAccountType=Standard_GRS
+
+      - name: Deploy VNet and Subnet
+        uses: azure/cli@v2
+        with:
+           inlineScript: |
+            az deployment group create \
+            --name VNetDeployment \
+            --resource-group Siddhant \
+            --template-file armtemplates/vnet.json \
+            --parameters vnetAddressPrefix=10.0.0.0/16 subnet1Prefix=10.0.2.0/24 appgwSubnetPrefix=10.0.1.0/24 location=eastus
+
+
+      - name: Deploy VM ARM Template
+        uses: azure/cli@v2
+        with:
+         azcliversion: 2.75.0
+         inlineScript: |
+            az deployment group create --name VMDeployment --resource-group Siddhant --template-file armtemplates/vm.json --parameters vmName=myVM01 adminUsername=azureuser adminPassword="${{ secrets.VM_ADMIN_PASSWORD }}" location=eastus
