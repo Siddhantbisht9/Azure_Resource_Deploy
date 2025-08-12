@@ -8,6 +8,7 @@
       "metadata": {
         "description": "Address prefix for the Virtual Network"
       }
+      
     },
     "subnet1Prefix": {
       "type": "string",
